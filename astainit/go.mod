@@ -1,4 +1,4 @@
-module github.com/astaclinic/ipf/astainit
+module github.com/astaclinic/toolchain/astainit
 
 go 1.18
 
