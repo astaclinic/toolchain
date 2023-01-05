@@ -1,0 +1,11 @@
+package entities
+
+import (
+	"gorm.io/gorm"
+)
+
+type {{.CapitalizedName}} struct {
+	gorm.Model
+{{range .Fields}}    {{.CapitalizedName }} {{if not .Array}}*{{end}}{{.Type}} {{if not .Association}}{{if not .Optional}}`gorm:"not null"`{{end}}{{end}}
+{{if eq .Association "hasOne"}}    {{.CapitalizedName }}ID *uint {{if not .Optional}}`gorm:"not null"`{{end}}
+{{end}}{{end}}}

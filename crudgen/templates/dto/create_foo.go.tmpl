@@ -1,0 +1,17 @@
+package dto
+
+import (
+	"{{.Package}}/internal/pkg/{{.Name}}/entities"
+)
+
+type Create{{.CapitalizedName}}Input struct {
+{{range .Fields}}{{if not .Association}}    {{.CapitalizedName}} {{if not .Array}}*{{end}}{{.Type}} `json:"{{.SnakeName}}"{{if not .Optional}} validate:"required"{{end}}`
+{{else if eq .Association "hasOne"}}    {{.CapitalizedName}}ID *uint `json:"{{.SnakeName}}_id"`
+{{end}}{{end}}}
+
+func (u *Create{{.CapitalizedName}}Input) ToEntity() *entities.{{.CapitalizedName}} {
+	return &entities.{{.CapitalizedName}}{
+{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: u.{{.CapitalizedName}},
+{{else if eq .Association "hasOne"}}        {{.CapitalizedName}}ID: u.{{.CapitalizedName}}ID,
+{{end}}{{end}}    }
+}

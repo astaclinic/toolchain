@@ -1,0 +1,78 @@
+package {{.Name}}
+
+import (
+	"context"
+	"errors"
+
+	"{{.Package}}/internal/pkg/{{.Name}}/dto"
+	"{{.Package}}/internal/pkg/{{.Name}}/entities"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+)
+
+type {{.CapitalizedName}}Service struct {
+	db *gorm.DB
+}
+
+func New{{.CapitalizedName}}Service(db *gorm.DB) *{{.CapitalizedName}}Service {
+	return &{{.CapitalizedName}}Service{db: db}
+}
+
+func (s *{{.CapitalizedName}}Service) Create(ctx context.Context, create{{.CapitalizedName}}Input dto.Create{{.CapitalizedName}}Input) (*dto.{{.CapitalizedName}}, error) {
+	{{.Name}} := create{{.CapitalizedName}}Input.ToEntity()
+	res := s.db.WithContext(ctx).Create({{.Name}})
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return dto.FromEntity({{.Name}}), nil
+}
+
+func (s *{{.CapitalizedName}}Service) GetAll(ctx context.Context) ([]*dto.{{.CapitalizedName}}, error) {
+	var {{.Name}}s []*entities.{{.CapitalizedName}}
+	res := s.db.WithContext(ctx).Find(&{{.Name}}s)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	var {{.Name}}sDto = make([]*dto.{{.CapitalizedName}}, len({{.Name}}s))
+	for i, {{.Name}} := range {{.Name}}s {
+		{{.Name}}sDto[i] = dto.FromEntity({{.Name}})
+	}
+	return {{.Name}}sDto, nil
+}
+
+func (s *{{.CapitalizedName}}Service) GetOne(ctx context.Context, id uint) (*dto.{{.CapitalizedName}}, error) {
+	var {{.Name}} entities.{{.CapitalizedName}}
+	res := s.db.WithContext(ctx).First(&{{.Name}}, id)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, res.Error
+	}
+	return dto.FromEntity(&{{.Name}}), nil
+}
+
+func (s *{{.CapitalizedName}}Service) Update(ctx context.Context, input *dto.Update{{.CapitalizedName}}Input) (*dto.{{.CapitalizedName}}, error) {
+	{{.Name}} := input.ToEntity()
+	updated{{.CapitalizedName}} := &entities.{{.CapitalizedName}}{Model: gorm.Model{ID: input.ID}}
+	res := s.db.WithContext(ctx).Model(&updated{{.CapitalizedName}}).Clauses(clause.Returning{}).Updates({{.Name}})
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, nil
+	}
+	return dto.FromEntity(updated{{.CapitalizedName}}), nil
+}
+
+func (s *{{.CapitalizedName}}Service) Remove(ctx context.Context, id uint) (*dto.{{.CapitalizedName}}, error) {
+	var {{.Name}} entities.{{.CapitalizedName}}
+	res := s.db.WithContext(ctx).Clauses(clause.Returning{}).Delete(&{{.Name}}, id)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, nil
+	}
+	return dto.FromEntity(&{{.Name}}), nil
+}

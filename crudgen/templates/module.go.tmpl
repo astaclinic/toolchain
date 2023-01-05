@@ -1,0 +1,18 @@
+//go:generate protoc --go_out=./grpc --go_opt=paths=source_relative --go-grpc_out=./grpc --go-grpc_opt=paths=source_relative  --proto_path=../../../../protobuf ../../../../protobuf/{{.Name}}_service.proto
+
+package {{.Name}}
+
+import (
+	"{{.Package}}/internal/pkg/{{.Name}}/entities"
+	"go.uber.org/fx"
+	"gorm.io/gorm"
+)
+
+var Module = fx.Module("{{.Name}}",
+	fx.Provide(New{{.CapitalizedName}}Service),
+	fx.Provide(New{{.CapitalizedName}}Controller),
+	fx.Invoke(register{{.CapitalizedName}}GrpcServer),
+	fx.Invoke(func(db *gorm.DB) error {
+		return db.AutoMigrate(&entities.{{.CapitalizedName}}{})
+	}),
+)

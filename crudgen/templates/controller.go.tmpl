@@ -1,0 +1,110 @@
+package {{.Name}}
+
+import (
+	"context"
+	"time"
+
+	"google.golang.org/grpc"
+
+	"{{.Package}}/internal/pkg/{{.Name}}/dto"
+	pb "{{.Package}}/internal/pkg/{{.Name}}/grpc"
+)
+
+type {{.CapitalizedName}}Controller struct {
+	pb.Unimplemented{{.CapitalizedName}}ServiceServer
+	{{.Name}}Service *{{.CapitalizedName}}Service
+}
+
+func New{{.CapitalizedName}}Controller({{.Name}}Service *{{.CapitalizedName}}Service) *{{.CapitalizedName}}Controller {
+	return &{{.CapitalizedName}}Controller{
+	    {{.Name}}Service: {{.Name}}Service,
+	}
+}
+
+func register{{.CapitalizedName}}GrpcServer(lc *{{.CapitalizedName}}Controller, s *grpc.Server) {
+	pb.Register{{.CapitalizedName}}ServiceServer(s, lc)
+}
+
+func (c *{{.CapitalizedName}}Controller) Create(ctx context.Context, create{{.CapitalizedName}}Input *pb.Create{{.CapitalizedName}}Input) (*pb.{{.CapitalizedName}}, error) {
+{{range .Fields}}{{if eq .Association "hasOne"}}    {{.Name}}ID := uint(create{{$.CapitalizedName}}Input.{{.CapitalizedName}}ID)
+{{end}}{{end}}    create{{.CapitalizedName}}InputDto := dto.Create{{.CapitalizedName}}Input{
+{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: &create{{$.CapitalizedName}}Input.{{.CapitalizedName}},
+{{else if eq .Association "hasOne"}}        {{.CapitalizedName}}ID: &{{.Name}}ID,
+{{end}}{{end}}    }
+	{{.Name}}, err := c.{{.Name}}Service.Create(ctx, create{{.CapitalizedName}}InputDto)
+	if err != nil {
+		return nil, err
+	}
+	return To{{.CapitalizedName}}Pb({{.Name}}), nil
+}
+
+func (c *{{.CapitalizedName}}Controller) GetAll(ctx context.Context, _ *pb.GetAllOptions) (*pb.Repeated{{.CapitalizedName}}, error) {
+	{{.PluralName}}, err := c.{{.Name}}Service.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return ToRepeated{{.CapitalizedName}}Pb({{.PluralName}}), nil
+}
+
+func (c *{{.CapitalizedName}}Controller) GetOne(ctx context.Context, id *pb.ID) (*pb.Optional{{.CapitalizedName}}, error) {
+	{{.Name}}, err := c.{{.Name}}Service.GetOne(ctx, uint(id.Id))
+	if err != nil {
+		return nil, err
+	}
+	return ToOptional{{.CapitalizedName}}Pb({{.Name}}), nil
+}
+
+func (c *{{.CapitalizedName}}Controller) Update(ctx context.Context, update{{.CapitalizedName}}Input *pb.Update{{.CapitalizedName}}Input) (*pb.Optional{{.CapitalizedName}}, error) {
+	update{{.CapitalizedName}}InputDto := dto.Update{{.CapitalizedName}}Input{
+		ID:      uint(update{{.CapitalizedName}}Input.Id),
+{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: update{{$.CapitalizedName}}Input.{{.CapitalizedName}},
+{{else if eq .Association "hasOne"}}        {{.CapitalizedName}}ID: &update{{$.CapitalizedName}}Input.{{.CapitalizedName}}ID,
+{{end}}{{end}}    }
+	{{.Name}}, err := c.{{.Name}}Service.Update(ctx, &update{{.CapitalizedName}}InputDto)
+	if err != nil {
+		return nil, err
+	}
+	return ToOptional{{.CapitalizedName}}Pb({{.Name}}), nil
+}
+
+func (c *{{.CapitalizedName}}Controller) Remove(ctx context.Context, id *pb.ID) (*pb.Optional{{.CapitalizedName}}, error) {
+	{{.Name}}, err := c.{{.Name}}Service.Remove(ctx, uint(id.Id))
+	if err != nil {
+		return nil, err
+	}
+	return ToOptional{{.CapitalizedName}}Pb({{.Name}}), nil
+}
+
+func To{{.CapitalizedName}}Pb({{.Name}} *dto.{{.CapitalizedName}}) *pb.{{.CapitalizedName}} {
+	pb{{.CapitalizedName}} := pb.{{.CapitalizedName}}{
+		Id:        uint64({{.Name}}.ID),
+{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: *{{$.Name}}.{{.CapitalizedName}},
+{{else if eq .Association "hasOne"}}        {{.CapitalizedName}}ID: int32(*{{$.Name}}.{{.CapitalizedName}}ID),
+{{end}}{{end}}        CreatedAt: {{.Name}}.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: {{.Name}}.UpdatedAt.Format(time.RFC3339),
+	}
+	if {{.Name}}.DeletedAt != nil {
+		deletedAt := {{.Name}}.DeletedAt.Format(time.RFC3339)
+		pb{{.CapitalizedName}}.DeletedAt = &deletedAt
+	}
+	return &pb{{.CapitalizedName}}
+}
+
+func ToOptional{{.CapitalizedName}}Pb({{.Name}} *dto.{{.CapitalizedName}}) *pb.Optional{{.CapitalizedName}} {
+	if {{.Name}} == nil {
+		return &pb.Optional{{.CapitalizedName}}{}
+	}
+	return &pb.Optional{{.CapitalizedName}}{
+		{{.CapitalizedName}}: To{{.CapitalizedName}}Pb({{.Name}}),
+	}
+}
+
+func ToRepeated{{.CapitalizedName}}Pb({{.PluralName}} []*dto.{{.CapitalizedName}}) *pb.Repeated{{.CapitalizedName}} {
+	pb{{.CapitalizedName}}s := make([]*pb.{{.CapitalizedName}}, len({{.PluralName}}))
+	for i, {{.Name}} := range {{.PluralName}} {
+		pb{{.CapitalizedName}}s[i] = To{{.CapitalizedName}}Pb({{.Name}})
+	}
+	return &pb.Repeated{{.CapitalizedName}}{
+		{{.CapitalizedName}}: pb{{.CapitalizedName}}s,
+	}
+}

@@ -1,0 +1,18 @@
+package app
+
+import (
+	"github.com/astaclinic/astafx"
+{{range .Modules}}    "github.com/astaclinic/astafx/{{.Package}}"
+{{end}}    "go.uber.org/fx"
+
+	"{{.Package}}/internal/pkg/config"
+)
+
+func New() *fx.App {
+	app := fx.New(
+		astafx.Module,
+		config.Module,
+{{range .Modules}}{{.Package}}.Module,
+{{end}}	 )
+	return app
+}
