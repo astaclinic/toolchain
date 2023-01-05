@@ -1,4 +1,4 @@
-package {{.Name}}
+package {{.LowerName}}
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 
 	"google.golang.org/grpc"
 
-	"{{.Package}}/internal/pkg/{{.Name}}/dto"
-	pb "{{.Package}}/internal/pkg/{{.Name}}/grpc"
+	"{{.Package}}/internal/pkg/{{.LowerName}}/dto"
+	pb "{{.Package}}/internal/pkg/{{.LowerName}}/grpc"
 )
 
 type {{.CapitalizedName}}Controller struct {

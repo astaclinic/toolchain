@@ -1,9 +1,9 @@
 //go:generate protoc --go_out=./grpc --go_opt=paths=source_relative --go-grpc_out=./grpc --go-grpc_opt=paths=source_relative  --proto_path=../../../../protobuf ../../../../protobuf/{{.Name}}_service.proto
 
-package {{.Name}}
+package {{.LowerName}}
 
 import (
-	"{{.Package}}/internal/pkg/{{.Name}}/entities"
+	"{{.Package}}/internal/pkg/{{.LowerName}}/entities"
 	"go.uber.org/fx"
 	"gorm.io/gorm"
 )

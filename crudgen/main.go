@@ -37,6 +37,7 @@ type Entity struct {
 	SnakePluralName       string
 	KebabName             string
 	KebabPluralName       string
+	LowerName             string
 	Fields                []Field
 }
 
@@ -55,7 +56,7 @@ func processFile(fileName string, entity Entity) error {
 	if err != nil {
 		return fmt.Errorf("fail to format source %w", err)
 	}
-	outFile := strings.ReplaceAll(filepath.Join("out", strings.TrimSuffix(fileName, filepath.Ext(fileName))), "foo", entity.KebabName)
+	outFile := strings.ReplaceAll(filepath.Join("out", strings.TrimSuffix(fileName, filepath.Ext(fileName))), "foo", entity.LowerName)
 	fmt.Printf("[*] Writing to %s\n", outFile)
 	err = os.MkdirAll(filepath.Dir(outFile), os.ModePerm)
 	if err != nil {
@@ -121,6 +122,7 @@ func main() {
 		SnakePluralName:       strcase.SnakeCase(*pluralName),
 		KebabName:             strcase.KebabCase(*name),
 		KebabPluralName:       strcase.KebabCase(*pluralName),
+		LowerName:             strings.ToLower(*name),
 		Fields:                fields,
 	}
 

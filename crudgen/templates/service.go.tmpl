@@ -1,11 +1,11 @@
-package {{.Name}}
+package {{.LowerName}}
 
 import (
 	"context"
 	"errors"
 
-	"{{.Package}}/internal/pkg/{{.Name}}/dto"
-	"{{.Package}}/internal/pkg/{{.Name}}/entities"
+	"{{.Package}}/internal/pkg/{{.LowerName}}/dto"
+	"{{.Package}}/internal/pkg/{{.LowerName}}/entities"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
