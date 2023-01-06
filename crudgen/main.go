@@ -43,7 +43,11 @@ type Entity struct {
 
 func processFile(fileName string, entity Entity) error {
 	tmplFile := filepath.Join("templates", fileName)
-	tmpl, err := template.New(filepath.Base(fileName)).ParseFS(templateFS, tmplFile)
+	tmpl, err := template.New(filepath.Base(fileName)).Funcs(template.FuncMap{
+		"inc": func(i, j int) int {
+			return i + j
+		},
+	}).ParseFS(templateFS, tmplFile)
 	fmt.Printf("[*] Processing %s\n", tmplFile)
 	if err != nil {
 		return fmt.Errorf("failed to parse template: %w", err)
@@ -52,11 +56,14 @@ func processFile(fileName string, entity Entity) error {
 	if err := tmpl.Execute(&buf, entity); err != nil {
 		return fmt.Errorf("failed to execute template: %w", err)
 	}
-	formattedSource, err := format.Source(buf.Bytes())
-	if err != nil {
-		return fmt.Errorf("fail to format source %w", err)
+	formattedSource := buf.Bytes()
+	if strings.HasSuffix(fileName, ".go.tmpl") {
+		formattedSource, err = format.Source(buf.Bytes())
+		if err != nil {
+			return fmt.Errorf("fail to format source %w", err)
+		}
 	}
-	outFile := strings.ReplaceAll(filepath.Join("out", strings.TrimSuffix(fileName, filepath.Ext(fileName))), "foo", entity.LowerName)
+	outFile := strings.ReplaceAll(filepath.Join("internal/pkg", entity.LowerName, strings.TrimSuffix(fileName, filepath.Ext(fileName))), "foo", entity.LowerName)
 	fmt.Printf("[*] Writing to %s\n", outFile)
 	err = os.MkdirAll(filepath.Dir(outFile), os.ModePerm)
 	if err != nil {

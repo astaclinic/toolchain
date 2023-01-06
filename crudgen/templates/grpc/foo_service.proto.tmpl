@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package templates;
+option go_package = "./proto";
+
+service {{.CapitalizedName}}Service {
+  rpc Create (Create{{.CapitalizedName}}Input) returns ({{.CapitalizedName}}) {}
+  rpc GetAll (GetAllOptions) returns (Repeated{{.CapitalizedName}}) {}
+  rpc GetOne (ID) returns (Optional{{.CapitalizedName}}) {}
+  rpc Update (Update{{.CapitalizedName}}Input) returns (Optional{{.CapitalizedName}}) {}
+  rpc Remove (ID) returns (Optional{{.CapitalizedName}}) {}
+}
+
+message Create{{.CapitalizedName}}Input {
+{{range $i, $v := .Fields}}{{if not .Association}}  {{if .Optional}}optional {{end}}{{$v.Type}} {{$v.SnakeName}} = {{inc $i 1}};
+{{else if eq $v.Association "hasOne"}}  {{if .Optional}}optional {{end}}int32 {{$v.SnakeName}}_id = {{inc $i 1}};
+{{end}}{{end}}}
+
+message Update{{.CapitalizedName}}Input {
+  int32 id = 1;
+{{range $i, $v := .Fields}}{{if not .Association}}  optional {{$v.Type}} {{$v.SnakeName}} = {{inc $i 2}};
+{{else if eq $v.Association "hasOne"}}  optional int32 {{$v.SnakeName}}_id = {{inc $i 2}};
+{{end}}{{end}}}
+
+message {{.CapitalizedName}} {
+  int32 id = 1;
+{{range $i, $v := .Fields}}{{if not .Association}}  {{if .Optional}}optional {{end}}{{$v.Type}} {{$v.SnakeName}} = {{inc $i 2}};
+{{else if eq $v.Association "hasOne"}}  {{if .Optional}}optional {{end}}int32 {{$v.SnakeName}}_id = {{inc $i 2}};
+{{end}}{{end}}  string created_at = {{len .Fields | inc 2}};
+  string updated_at = {{len .Fields | inc 3}};
+  optional string deleted_at = {{len .Fields | inc 4}};
+}
+
+message Optional{{.CapitalizedName}} {
+  optional {{.CapitalizedName}} {{.SnakeName}} = 1;
+}
+
+message Repeated{{.CapitalizedName}} {
+  repeated {{.CapitalizedName}} {{.SnakePluralName}} = 1;
+}
+
+message ID {
+  int32 id = 1;
+}
+
+message GetAllOptions {
+
+}

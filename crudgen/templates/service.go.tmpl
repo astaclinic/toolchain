@@ -28,16 +28,16 @@ func (s *{{.CapitalizedName}}Service) Create(ctx context.Context, create{{.Capit
 }
 
 func (s *{{.CapitalizedName}}Service) GetAll(ctx context.Context) ([]*dto.{{.CapitalizedName}}, error) {
-	var {{.Name}}s []*entities.{{.CapitalizedName}}
-	res := s.db.WithContext(ctx).Find(&{{.Name}}s)
+	var {{.PluralName}} []*entities.{{.CapitalizedName}}
+	res := s.db.WithContext(ctx).Find(&{{.PluralName}})
 	if res.Error != nil {
 		return nil, res.Error
 	}
-	var {{.Name}}sDto = make([]*dto.{{.CapitalizedName}}, len({{.Name}}s))
-	for i, {{.Name}} := range {{.Name}}s {
-		{{.Name}}sDto[i] = dto.FromEntity({{.Name}})
+	var {{.PluralName}}Dto = make([]*dto.{{.CapitalizedName}}, len({{.PluralName}}))
+	for i, {{.Name}} := range {{.PluralName}} {
+		{{.PluralName}}Dto[i] = dto.FromEntity({{.Name}})
 	}
-	return {{.Name}}sDto, nil
+	return {{.PluralName}}Dto, nil
 }
 
 func (s *{{.CapitalizedName}}Service) GetOne(ctx context.Context, id uint) (*dto.{{.CapitalizedName}}, error) {
