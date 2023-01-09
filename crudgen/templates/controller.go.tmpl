@@ -26,7 +26,7 @@ func register{{.CapitalizedName}}GrpcServer(lc *{{.CapitalizedName}}Controller, 
 }
 
 func (c *{{.CapitalizedName}}Controller) Create(ctx context.Context, create{{.CapitalizedName}}Input *pb.Create{{.CapitalizedName}}Input) (*pb.{{.CapitalizedName}}, error) {
-{{range .Fields}}{{if eq .Association "hasOne"}}    {{.Name}}ID := uint(create{{$.CapitalizedName}}Input.{{.CapitalizedName}}ID)
+{{range .Fields}}{{if eq .Association "hasOne"}}    {{.Name}}ID := uint(create{{$.CapitalizedName}}Input.{{.CapitalizedName}}Id)
 {{end}}{{end}}    create{{.CapitalizedName}}InputDto := dto.Create{{.CapitalizedName}}Input{
 {{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: &create{{$.CapitalizedName}}Input.{{.CapitalizedName}},
 {{else if eq .Association "hasOne"}}        {{.CapitalizedName}}ID: &{{.Name}}ID,
@@ -55,12 +55,15 @@ func (c *{{.CapitalizedName}}Controller) GetOne(ctx context.Context, id *pb.ID) 
 }
 
 func (c *{{.CapitalizedName}}Controller) Update(ctx context.Context, update{{.CapitalizedName}}Input *pb.Update{{.CapitalizedName}}Input) (*pb.Optional{{.CapitalizedName}}, error) {
-	update{{.CapitalizedName}}InputDto := dto.Update{{.CapitalizedName}}Input{
+    update{{.CapitalizedName}}InputDto := dto.Update{{.CapitalizedName}}Input{
 		ID:      uint(update{{.CapitalizedName}}Input.Id),
 {{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: update{{$.CapitalizedName}}Input.{{.CapitalizedName}},
-{{else if eq .Association "hasOne"}}        {{.CapitalizedName}}ID: &update{{$.CapitalizedName}}Input.{{.CapitalizedName}}ID,
 {{end}}{{end}}    }
-	{{.Name}}, err := c.{{.Name}}Service.Update(ctx, &update{{.CapitalizedName}}InputDto)
+{{range .Fields}}{{if eq .Association "hasOne"}}    if update{{$.CapitalizedName}}Input.{{.CapitalizedName}}Id != nil {
+        {{.Name}}ID := uint(*update{{$.CapitalizedName}}Input.{{.CapitalizedName}}Id)
+        update{{$.CapitalizedName}}InputDto.{{.CapitalizedName}}ID = &{{.Name}}ID
+}
+{{end}}{{end}}    {{.Name}}, err := c.{{.Name}}Service.Update(ctx, &update{{.CapitalizedName}}InputDto)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +82,7 @@ func To{{.CapitalizedName}}Pb({{.Name}} *dto.{{.CapitalizedName}}) *pb.{{.Capita
 	pb{{.CapitalizedName}} := pb.{{.CapitalizedName}}{
 		Id:        int32({{.Name}}.ID),
 {{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: *{{$.Name}}.{{.CapitalizedName}},
-{{else if eq .Association "hasOne"}}        {{.CapitalizedName}}ID: int32(*{{$.Name}}.{{.CapitalizedName}}ID),
+{{else if eq .Association "hasOne"}}        {{.CapitalizedName}}Id: int32(*{{$.Name}}.{{.CapitalizedName}}ID),
 {{end}}{{end}}        CreatedAt: {{.Name}}.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: {{.Name}}.UpdatedAt.Format(time.RFC3339),
 	}

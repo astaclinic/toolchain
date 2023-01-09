@@ -1,11 +1,13 @@
 package entities
 
 import (
+{{range .Fields}}{{if .Association}}    {{.LowerName}}entities "github.com/astaclinic/crudplayground/internal/pkg/{{.LowerName}}/entities"
+{{end}}{{end}}
 	"gorm.io/gorm"
 )
 
 type {{.CapitalizedName}} struct {
 	gorm.Model
-{{range .Fields}}    {{.CapitalizedName }} {{if not .Array}}*{{end}}{{.Type}} {{if not .Association}}{{if not .Optional}}`gorm:"not null"`{{end}}{{end}}
+{{range .Fields}}    {{.CapitalizedName }} {{if not .Array}}*{{end}}{{if .Association}}{{.LowerName}}entities.{{end}}{{.Type}} {{if not .Association}}{{if not .Optional}}`gorm:"not null"`{{end}}{{end}}
 {{if eq .Association "hasOne"}}    {{.CapitalizedName }}ID *uint {{if not .Optional}}`gorm:"not null"`{{end}}
 {{end}}{{end}}}

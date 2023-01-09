@@ -8,8 +8,9 @@ import (
 
 type {{.CapitalizedName}} struct {
 	ID        uint       `json:"id" example:"1"`
-{{range .Fields}}    {{.CapitalizedName }} {{if not .Array}}*{{end}}{{.Type}} `json:"{{.SnakeName}}"`
-{{end}}    CreatedAt *time.Time `json:"created_at"`
+{{range .Fields}}{{if not .Association}}    {{.CapitalizedName}} {{if not .Array}}*{{end}}{{.Type}} `json:"{{.SnakeName}}"{{if not .Optional}} validate:"required"{{end}}`
+{{else if eq .Association "hasOne"}}    {{.CapitalizedName}}ID *uint `json:"{{.SnakeName}}_id"`
+{{end}}{{end}}    CreatedAt *time.Time `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at"`
 }
@@ -17,8 +18,9 @@ type {{.CapitalizedName}} struct {
 func FromEntity({{.Name}} *entities.{{.CapitalizedName}}) *{{.CapitalizedName}} {
 	{{.Name}}Dto := {{.CapitalizedName}}{
 		ID:        {{.Name}}.ID,
-{{range .Fields}}        {{.CapitalizedName}}: {{$.Name}}.{{.CapitalizedName}},
-{{end}}        CreatedAt: &{{.Name}}.CreatedAt,
+{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: {{$.Name}}.{{.CapitalizedName}},
+{{else if eq .Association "hasOne"}}        {{.CapitalizedName}}ID: {{$.Name}}.{{.CapitalizedName}}ID,
+{{end}}{{end}}        CreatedAt: &{{.Name}}.CreatedAt,
 		UpdatedAt: &{{.Name}}.UpdatedAt,
 	}
 	if {{.Name}}.DeletedAt.Valid {

@@ -21,6 +21,7 @@ type Field struct {
 	Name            string `json:"name"`
 	CapitalizedName string
 	SnakeName       string
+	LowerName       string
 	Type            string `json:"type"`
 	Optional        bool   `json:"optional"`
 	Array           bool   `json:"array"`
@@ -117,6 +118,7 @@ func main() {
 	for i, field := range fields {
 		fields[i].CapitalizedName = strcase.UpperCamelCase(field.Name)
 		fields[i].SnakeName = strcase.SnakeCase(field.Name)
+		fields[i].LowerName = strings.ToLower(field.Name)
 	}
 
 	entity := Entity{
