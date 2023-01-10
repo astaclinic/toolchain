@@ -1,7 +1,7 @@
 package entities
 
 import (
-{{range .Fields}}{{if .Association}}    {{.LowerName}}entities "github.com/astaclinic/crudplayground/{{.OutDir}}/{{.LowerName}}/entities"
+{{range .Fields}}{{if .Association}}    {{.LowerName}}entities "{{.Package}}/entities"
 {{end}}{{end}}
 	"gorm.io/gorm"
 )
