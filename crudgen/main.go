@@ -18,7 +18,7 @@ import (
 )
 
 type Field struct {
-	Package         string
+	Package         string `json:"package"`
 	Name            string `json:"name"`
 	CapitalizedName string
 	SnakeName       string
@@ -26,7 +26,6 @@ type Field struct {
 	Type            string `json:"type"`
 	Optional        bool   `json:"optional"`
 	Array           bool   `json:"array"`
-	OutDir          string
 	Association     string `json:"association"`
 }
 
@@ -123,8 +122,7 @@ func main() {
 		fields[i].CapitalizedName = strcase.UpperCamelCase(field.Name)
 		fields[i].SnakeName = strcase.SnakeCase(field.Name)
 		fields[i].LowerName = strings.ToLower(field.Name)
-		fields[i].OutDir = *outDir
-		fields[i].Package = *packageName
+		fields[i].Package = strings.ToLower(field.Package)
 	}
 
 	entity := Entity{
