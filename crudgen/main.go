@@ -18,6 +18,7 @@ import (
 )
 
 type Field struct {
+	Package         string
 	Name            string `json:"name"`
 	CapitalizedName string
 	SnakeName       string
@@ -123,6 +124,7 @@ func main() {
 		fields[i].SnakeName = strcase.SnakeCase(field.Name)
 		fields[i].LowerName = strings.ToLower(field.Name)
 		fields[i].OutDir = *outDir
+		fields[i].Package = *packageName
 	}
 
 	entity := Entity{
