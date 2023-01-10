@@ -122,7 +122,11 @@ func main() {
 		fields[i].CapitalizedName = strcase.UpperCamelCase(field.Name)
 		fields[i].SnakeName = strcase.SnakeCase(field.Name)
 		fields[i].LowerName = strings.ToLower(field.Name)
-		fields[i].Package = strings.ToLower(field.Package)
+		importPackageName := field.Package
+		if importPackageName == "" {
+			importPackageName = fmt.Sprintf("%v/internal/pkg/%v", *packageName, strings.ToLower(field.Name))
+		}
+		fields[i].Package = strings.ToLower(importPackageName)
 	}
 
 	entity := Entity{
