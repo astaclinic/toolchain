@@ -25,6 +25,7 @@ type Field struct {
 	Type            string `json:"type"`
 	Optional        bool   `json:"optional"`
 	Array           bool   `json:"array"`
+	OutDir          string
 	Association     string `json:"association"`
 }
 
@@ -39,10 +40,11 @@ type Entity struct {
 	KebabName             string
 	KebabPluralName       string
 	LowerName             string
+	OutDir                string
 	Fields                []Field
 }
 
-func processFile(fileName string, entity Entity) error {
+func processFile(fileName string, outDir string, entity Entity) error {
 	tmplFile := filepath.Join("templates", fileName)
 	tmpl, err := template.New(filepath.Base(fileName)).Funcs(template.FuncMap{
 		"inc": func(i, j int) int {
@@ -64,7 +66,7 @@ func processFile(fileName string, entity Entity) error {
 			return fmt.Errorf("fail to format source %w", err)
 		}
 	}
-	outFile := strings.ReplaceAll(filepath.Join("internal/pkg", entity.LowerName, strings.TrimSuffix(fileName, filepath.Ext(fileName))), "foo", entity.LowerName)
+	outFile := strings.ReplaceAll(filepath.Join(outDir, entity.LowerName, strings.TrimSuffix(fileName, filepath.Ext(fileName))), "foo", entity.LowerName)
 	fmt.Printf("[*] Writing to %s\n", outFile)
 	err = os.MkdirAll(filepath.Dir(outFile), os.ModePerm)
 	if err != nil {
@@ -84,6 +86,7 @@ var templateFS embed.FS
 
 func main() {
 	name := flag.String("name", "", "name of the entity")
+	outDir := flag.String("outDir", "internal/pkg", "output directory of generated files")
 	pluralName := flag.String("plural", "", "plural name of the entity")
 	packageName := flag.String("package", "", "go package name of the entity")
 	fieldsJson := flag.String("fields", "fields.json", "fields of the entity")
@@ -119,6 +122,7 @@ func main() {
 		fields[i].CapitalizedName = strcase.UpperCamelCase(field.Name)
 		fields[i].SnakeName = strcase.SnakeCase(field.Name)
 		fields[i].LowerName = strings.ToLower(field.Name)
+		fields[i].OutDir = *outDir
 	}
 
 	entity := Entity{
@@ -132,6 +136,7 @@ func main() {
 		KebabName:             strcase.KebabCase(*name),
 		KebabPluralName:       strcase.KebabCase(*pluralName),
 		LowerName:             strings.ToLower(*name),
+		OutDir:                *outDir,
 		Fields:                fields,
 	}
 
@@ -150,7 +155,7 @@ func main() {
 	}
 
 	for _, file := range tmplList {
-		err := processFile(file, entity)
+		err := processFile(file, *outDir, entity)
 		if err != nil {
 			fmt.Printf("[!] failed to process file %s: %v\n", file, err)
 		}

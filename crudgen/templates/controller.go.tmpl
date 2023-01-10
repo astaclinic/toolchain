@@ -6,8 +6,8 @@ import (
 
 	"google.golang.org/grpc"
 
-	"{{.Package}}/internal/pkg/{{.LowerName}}/dto"
-	pb "{{.Package}}/internal/pkg/{{.LowerName}}/grpc"
+	"{{.Package}}/{{.OutDir}}/{{.LowerName}}/dto"
+	pb "{{.Package}}/{{.OutDir}}/{{.LowerName}}/grpc"
 )
 
 type {{.CapitalizedName}}Controller struct {
@@ -28,7 +28,7 @@ func register{{.CapitalizedName}}GrpcServer(lc *{{.CapitalizedName}}Controller, 
 func (c *{{.CapitalizedName}}Controller) Create(ctx context.Context, create{{.CapitalizedName}}Input *pb.Create{{.CapitalizedName}}Input) (*pb.{{.CapitalizedName}}, error) {
 {{range .Fields}}{{if eq .Association "hasOne"}}    {{.Name}}ID := uint(create{{$.CapitalizedName}}Input.{{.CapitalizedName}}Id)
 {{end}}{{end}}    create{{.CapitalizedName}}InputDto := dto.Create{{.CapitalizedName}}Input{
-{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: &create{{$.CapitalizedName}}Input.{{.CapitalizedName}},
+{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: {{if not .Optional}}&{{ end }}create{{$.CapitalizedName}}Input.{{.CapitalizedName}},
 {{else if eq .Association "hasOne"}}        {{.CapitalizedName}}ID: &{{.Name}}ID,
 {{end}}{{end}}    }
 	{{.Name}}, err := c.{{.Name}}Service.Create(ctx, create{{.CapitalizedName}}InputDto)
@@ -81,7 +81,7 @@ func (c *{{.CapitalizedName}}Controller) Remove(ctx context.Context, id *pb.ID) 
 func To{{.CapitalizedName}}Pb({{.Name}} *dto.{{.CapitalizedName}}) *pb.{{.CapitalizedName}} {
 	pb{{.CapitalizedName}} := pb.{{.CapitalizedName}}{
 		Id:        int32({{.Name}}.ID),
-{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: *{{$.Name}}.{{.CapitalizedName}},
+{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: {{if not .Optional}}*{{end}}{{$.Name}}.{{.CapitalizedName}},
 {{else if eq .Association "hasOne"}}        {{.CapitalizedName}}Id: int32(*{{$.Name}}.{{.CapitalizedName}}ID),
 {{end}}{{end}}        CreatedAt: {{.Name}}.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: {{.Name}}.UpdatedAt.Format(time.RFC3339),
