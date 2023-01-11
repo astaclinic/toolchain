@@ -2,7 +2,7 @@ package dto
 
 import (
 	"time"
-
+	pb "{{.Package}}/{{.OutDir}}/{{.LowerName}}/grpc"
 	"{{.Package}}/{{.OutDir}}/{{.LowerName}}/entities"
 )
 
@@ -27,4 +27,42 @@ func FromEntity({{.Name}} *entities.{{.CapitalizedName}}) *{{.CapitalizedName}} 
 		{{.Name}}Dto.DeletedAt = &{{.Name}}.DeletedAt.Time
 	}
 	return &{{.Name}}Dto
+}
+
+func {{.CapitalizedName}}PbToDto({{.Name}}Pb *pb.{{.CapitalizedName}}) (*{{.CapitalizedName}}, error){
+	{{range .Fields}}{{if eq .Association "hasOne"}}    {{.Name}}ID := uint({{$.Name}}Pb.{{.CapitalizedName}}Id)
+	{{end}}{{end}}	createdAt, err := time.Parse(time.RFC3339, {{.Name}}Pb.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	updatedAt, err := time.Parse(time.RFC3339, {{.Name}}Pb.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	{{.Name}}Dto := {{.CapitalizedName}}{
+		ID:              uint(bookingSessionPb.Id),
+{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: {{if not .Optional}}&{{end}}{{$.Name}}Pb.{{.CapitalizedName}},
+{{else if eq .Association "hasOne"}}        {{.CapitalizedName}}ID: &{{.Name}}ID,
+{{end}}{{end}}        CreatedAt: &createdAt,
+		UpdatedAt: &updatedAt,
+	}
+	if {{.Name}}Pb.DeletedAt != nil {
+		deletedAt, err := time.Parse(time.RFC3339, *{{.Name}}Pb.DeletedAt)
+		if err != nil {
+			return nil, err
+		}
+		{{.Name}}Dto.DeletedAt = &deletedAt
+	}
+	return &{{.Name}}Dto, nil
+}
+
+func Optional{{.CapitalizedName}}PbToDto(optional{{.CapitalizedName}}Pb *pb.Optional{{.CapitalizedName}}) (*{{.CapitalizedName}}, error) {
+	if optional{{.CapitalizedName}}Pb.{{.CapitalizedName}} == nil {
+		return nil, nil
+	}
+	{{.Name}}, err := {{.CapitalizedName}}PbToDto(optional{{.CapitalizedName}}Pb.{{.CapitalizedName}})
+	if err != nil {
+		return nil, err
+	}
+	return {{.Name}}, nil
 }

@@ -6,9 +6,90 @@ import (
 
 	"{{.Package}}/{{.OutDir}}/{{.LowerName}}/dto"
 	"{{.Package}}/{{.OutDir}}/{{.LowerName}}/entities"
+	pb "{{.Package}}/{{.OutDir}}/{{.LowerName}}/grpc"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
+
+type {{.CapitalizedName}}ClientService struct {
+	{{.Name}}Client pb.{{.CapitalizedName}}ServiceClient
+}
+
+func New{{.CapitalizedName}}ClientService({{.Name}}Client pb.{{.CapitalizedName}}ServiceClient) *{{.CapitalizedName}}ClientService {
+	return &{{.CapitalizedName}}ClientService{
+		{{.Name}}Client: {{.Name}}Client,
+	}
+}
+
+func (s *{{.CapitalizedName}}ClientService) Create(ctx context.Context, create{{.CapitalizedName}}Input dto.Create{{.CapitalizedName}}Input) (*dto.{{.CapitalizedName}}, error) {
+	{{.Name}} := create{{.CapitalizedName}}Input.ToPb()
+	res, err := s.{{.Name}}Client.Create(ctx, {{.Name}})
+	if err != nil {
+		return nil, err
+	}
+	output, err := dto.{{.CapitalizedName}}PbToDto(res)
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
+}
+
+func (s *{{.CapitalizedName}}ClientService) GetAll(ctx context.Context) ([]*dto.{{.CapitalizedName}}, error) {
+	res, err := s.{{.Name}}Client.GetAll(ctx, &pb.GetAllOptions{})
+	if err != nil {
+		return nil, err
+	}
+	output := make([]*dto.{{.CapitalizedName}}, len(res.{{.CapitalizedPluralName}}))
+	for i, {{.Name}} := range res.{{.CapitalizedPluralName}} {
+		dto, err := dto.{{.CapitalizedName}}PbToDto({{.Name}})
+		if err != nil {
+			return nil, err
+		}
+		output[i] = dto
+	}
+	return output, nil
+}
+
+func (s *{{.CapitalizedName}}ClientService) GetOne(ctx context.Context, id uint) (*dto.{{.CapitalizedName}}, error) {
+	res, err := s.{{.Name}}Client.GetOne(ctx, &pb.ID{
+		Id: int32(id),
+	})
+	if err != nil {
+		return nil, err
+	}
+	output, err := dto.Optional{{.CapitalizedName}}PbToDto(res)
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
+}
+
+func (s *{{.CapitalizedName}}ClientService) Update(ctx context.Context, input *dto.Update{{.CapitalizedName}}Input) (*dto.{{.CapitalizedName}}, error) {
+	{{.Name}} := input.ToPb()
+	res, err := s.{{.Name}}Client.Update(ctx, {{.Name}})
+	if err != nil {
+		return nil, err
+	}
+	output, err := dto.Optional{{.CapitalizedName}}PbToDto(res)
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
+}
+
+func (s *{{.CapitalizedName}}ClientService) Remove(ctx context.Context, id uint) (*dto.{{.CapitalizedName}}, error) {
+	res, err := s.{{.Name}}Client.Remove(ctx, &pb.ID{
+		Id: int32(id),
+	})
+	if err != nil {
+		return nil, err
+	}
+	output, err := dto.Optional{{.CapitalizedName}}PbToDto(res)
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
+}
 
 type {{.CapitalizedName}}Service struct {
 	db *gorm.DB
