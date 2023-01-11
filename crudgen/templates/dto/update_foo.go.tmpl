@@ -1,6 +1,7 @@
 package dto
 
 import (
+	pb "{{.Package}}/{{.OutDir}}/{{.LowerName}}/grpc"
 	"{{.Package}}/{{.OutDir}}/{{.LowerName}}/entities"
 	"gorm.io/gorm"
 )
@@ -19,4 +20,13 @@ func (u *Update{{.CapitalizedName}}Input) ToEntity() *entities.{{.CapitalizedNam
 {{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: u.{{.CapitalizedName}},
 {{else if eq .Association "hasOne"}}        {{.CapitalizedName}}ID: u.{{.CapitalizedName}}ID,
 {{end}}{{end}}    }
+}
+
+func (u *Update{{.CapitalizedName}}Input) ToPb() *pb.Update{{.CapitalizedName}}Input {
+	{{range .Fields}}{{if eq .Association "hasOne"}}    {{.Name}}ID := int32(*u.{{.CapitalizedName}}ID)
+	{{end}}{{end}}		return &pb.Update{{.CapitalizedName}}Input{
+		{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: u.{{.CapitalizedName}},
+		{{else if eq .Association "hasOne"}}        {{.CapitalizedName}}Id: &{{.Name}}ID,
+		{{end}}{{end}} 
+	}
 }
