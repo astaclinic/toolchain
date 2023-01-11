@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package templates;
+package {{.LowerName}};
 option go_package = "./proto";
 
 service {{.CapitalizedName}}Service {
