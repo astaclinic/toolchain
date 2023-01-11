@@ -40,7 +40,7 @@ func {{.CapitalizedName}}PbToDto({{.Name}}Pb *pb.{{.CapitalizedName}}) (*{{.Capi
 		return nil, err
 	}
 	{{.Name}}Dto := {{.CapitalizedName}}{
-		ID:              uint(bookingSessionPb.Id),
+		ID:              uint({{.Name}}Pb.Id),
 {{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: {{if not .Optional}}&{{end}}{{$.Name}}Pb.{{.CapitalizedName}},
 {{else if eq .Association "hasOne"}}        {{.CapitalizedName}}ID: &{{.Name}}ID,
 {{end}}{{end}}        CreatedAt: &createdAt,

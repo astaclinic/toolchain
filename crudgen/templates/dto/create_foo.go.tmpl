@@ -19,7 +19,7 @@ func (u *Create{{.CapitalizedName}}Input) ToEntity() *entities.{{.CapitalizedNam
 
 func (u *Create{{.CapitalizedName}}Input) ToPb() *pb.Create{{.CapitalizedName}}Input {
 	{{range .Fields}}{{if eq .Association "hasOne"}}    {{.Name}}ID := int32(*u.{{.CapitalizedName}}ID)
-	{{end}}{{end}}		return &pb.CreateBookingSessionInput{
+	{{end}}{{end}}		return &pb.Create{{.CapitalizedName}}Input{
 		{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: {{if not .Optional}}*{{end}}u.{{.CapitalizedName}},
 		{{else if eq .Association "hasOne"}}        {{.CapitalizedName}}Id: {{.Name}}ID,
 		{{end}}{{end}} 
