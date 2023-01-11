@@ -25,6 +25,7 @@ type Field struct {
 	LowerName       string
 	Type            string `json:"type"`
 	Optional        bool   `json:"optional"`
+	Unique          bool   `json:"unique"`
 	Array           bool   `json:"array"`
 	Association     string `json:"association"`
 }
@@ -117,7 +118,7 @@ func main() {
 	if err := json.Unmarshal(fieldsJsonb, &fields); err != nil {
 		fmt.Printf("[!] failed to unmarshal fields json: %v\n", err)
 	}
-
+	fmt.Print(fields[0].Unique)
 	for i, field := range fields {
 		fields[i].CapitalizedName = strcase.UpperCamelCase(field.Name)
 		fields[i].SnakeName = strcase.SnakeCase(field.Name)
