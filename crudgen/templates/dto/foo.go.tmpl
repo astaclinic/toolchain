@@ -3,13 +3,15 @@ package dto
 import (
 	"time"
 	pb "{{.Package}}/{{.OutDir}}/{{.LowerName}}/grpc"
-	"{{.Package}}/{{.OutDir}}/{{.LowerName}}/entities"
+	{{range .Fields}}{{if eq .Association "hasOne" }}{{.LowerName}}dto "{{.Package}}/dto"{{end}}
+	{{end}}	"{{.Package}}/{{.OutDir}}/{{.LowerName}}/entities"
 )
 
 type {{.CapitalizedName}} struct {
 	ID        uint       `json:"id" example:"1"`
 {{range .Fields}}{{if not .Association}}    {{.CapitalizedName}} {{if not .Array}}*{{end}}{{.Type}} `json:"{{.SnakeName}}"{{if not .Optional}} validate:"required"{{end}}`
 {{else if eq .Association "hasOne"}}    {{.CapitalizedName}}ID *uint `json:"{{.SnakeName}}_id"`
+{{.CapitalizedName}} *{{.LowerName}}dto.{{.CapitalizedName}}
 {{end}}{{end}}    CreatedAt *time.Time `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at"`
@@ -20,6 +22,7 @@ func FromEntity({{.Name}} *entities.{{.CapitalizedName}}) *{{.CapitalizedName}} 
 		ID:        {{.Name}}.ID,
 {{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: {{$.Name}}.{{.CapitalizedName}},
 {{else if eq .Association "hasOne"}}        {{.CapitalizedName}}ID: {{$.Name}}.{{.CapitalizedName}}ID,
+{{.CapitalizedName}}: {{.LowerName}}dto.FromEntity({{$.Name}}.{{.CapitalizedName}}),
 {{end}}{{end}}        CreatedAt: &{{.Name}}.CreatedAt,
 		UpdatedAt: &{{.Name}}.UpdatedAt,
 	}

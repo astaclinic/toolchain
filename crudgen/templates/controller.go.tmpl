@@ -38,16 +38,54 @@ func (c *{{.CapitalizedName}}Controller) Create(ctx context.Context, create{{.Ca
 	return To{{.CapitalizedName}}Pb({{.Name}}), nil
 }
 
-func (c *{{.CapitalizedName}}Controller) GetAll(ctx context.Context, _ *pb.GetAllOptions) (*pb.Repeated{{.CapitalizedName}}, error) {
-	{{.PluralName}}, err := c.{{.Name}}Service.GetAll(ctx)
+func (c *{{.CapitalizedName}}Controller) GetAll(ctx context.Context, options *pb.WhereOptions) (*pb.Repeated{{.CapitalizedName}}, error) {
+	getOptions := dto.WhereOptions{
+{{range .Fields}}    {{.CapitalizedName}}: options.{{.CapitalizedName}},
+{{end}}}
+	if options.Id != nil {
+		id := uint(*options.Id)
+		getOptions.Id = &id
+	}
+	{{.PluralName}}, err := c.{{.Name}}Service.GetAll(ctx, getOptions.ToEntity())
 	if err != nil {
 		return nil, err
 	}
 	return ToRepeated{{.CapitalizedName}}Pb({{.PluralName}}), nil
 }
 
-func (c *{{.CapitalizedName}}Controller) GetOne(ctx context.Context, id *pb.ID) (*pb.Optional{{.CapitalizedName}}, error) {
-	{{.Name}}, err := c.{{.Name}}Service.GetOne(ctx, uint(id.Id))
+func (c *{{.CapitalizedName}}Controller) GetOne(ctx context.Context, options *pb.WhereOptions) (*pb.Optional{{.CapitalizedName}}, error) {
+	getOptions := dto.WhereOptions{
+{{range .Fields}}    {{.CapitalizedName}}: options.{{.CapitalizedName}},
+{{end}}}
+	if options.Id != nil {
+		id := uint(*options.Id)
+		getOptions.Id = &id
+	}
+	{{.Name}}, err := c.{{.Name}}Service.GetOne(ctx, getOptions.ToEntity())
+	if err != nil {
+		return nil, err
+	}
+	return ToOptional{{.CapitalizedName}}Pb({{.Name}}), nil
+}
+
+func (c *{{.CapitalizedName}}Controller) GetOneById(ctx context.Context, id *pb.ID) (*pb.Optional{{.CapitalizedName}}, error) {
+	{{.Name}}, err := c.{{.Name}}Service.GetOneById(ctx, uint(id.Id))
+	if err != nil {
+		return nil, err
+	}
+	return ToOptional{{.CapitalizedName}}Pb({{.Name}}), nil
+}
+
+func (c *{{.CapitalizedName}}Controller) UpdateById(ctx context.Context, update{{.CapitalizedName}}ByIdInput *pb.Update{{.CapitalizedName}}ByIdInput) (*pb.Optional{{.CapitalizedName}}, error) {
+		update{{.CapitalizedName}}ByIdInputDto := dto.Update{{.CapitalizedName}}Input{
+		ID:      uint(update{{.CapitalizedName}}ByIdInput.Id),
+{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: update{{$.CapitalizedName}}ByIdInput.{{.CapitalizedName}},
+{{end}}{{end}}    }
+{{range .Fields}}{{if eq .Association "hasOne"}}    if update{{$.CapitalizedName}}ByIdInput.{{.CapitalizedName}}Id != nil {
+        {{.Name}}ID := uint(*update{{$.CapitalizedName}}ByIdInput.{{.CapitalizedName}}Id)
+        update{{$.CapitalizedName}}ByIdInputDto.{{.CapitalizedName}}ID = &{{.Name}}ID
+}
+{{end}}{{end}}    {{.Name}}, err := c.{{.Name}}Service.UpdateById(ctx, &update{{.CapitalizedName}}ByIdInputDto)
 	if err != nil {
 		return nil, err
 	}
@@ -55,28 +93,81 @@ func (c *{{.CapitalizedName}}Controller) GetOne(ctx context.Context, id *pb.ID) 
 }
 
 func (c *{{.CapitalizedName}}Controller) Update(ctx context.Context, update{{.CapitalizedName}}Input *pb.Update{{.CapitalizedName}}Input) (*pb.Optional{{.CapitalizedName}}, error) {
-    update{{.CapitalizedName}}InputDto := dto.Update{{.CapitalizedName}}Input{
-		ID:      uint(update{{.CapitalizedName}}Input.Id),
-{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: update{{$.CapitalizedName}}Input.{{.CapitalizedName}},
+		options := update{{.CapitalizedName}}Input.Options
+		payload := update{{.CapitalizedName}}Input.Payload
+		updateOptions := dto.WhereOptions{
+{{range .Fields}}    {{.CapitalizedName}}: options.{{.CapitalizedName}},
+{{end}}}
+		if options.Id != nil {
+			id := uint(*options.Id)
+			updateOptions.Id = &id
+		}
+		update{{.CapitalizedName}}InputDto := dto.Update{{.CapitalizedName}}Input{
+{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: payload.{{.CapitalizedName}},
 {{end}}{{end}}    }
-{{range .Fields}}{{if eq .Association "hasOne"}}    if update{{$.CapitalizedName}}Input.{{.CapitalizedName}}Id != nil {
-        {{.Name}}ID := uint(*update{{$.CapitalizedName}}Input.{{.CapitalizedName}}Id)
+{{range .Fields}}{{if eq .Association "hasOne"}}    if payload.{{.CapitalizedName}}Id != nil {
+        {{.Name}}ID := uint(*payload.{{.CapitalizedName}}Id)
         update{{$.CapitalizedName}}InputDto.{{.CapitalizedName}}ID = &{{.Name}}ID
 }
-{{end}}{{end}}    {{.Name}}, err := c.{{.Name}}Service.Update(ctx, &update{{.CapitalizedName}}InputDto)
+{{end}}{{end}}    {{.Name}}, err := c.{{.Name}}Service.Update(ctx, &update{{.CapitalizedName}}InputDto, updateOptions.ToEntity())
 	if err != nil {
 		return nil, err
 	}
 	return ToOptional{{.CapitalizedName}}Pb({{.Name}}), nil
 }
 
-func (c *{{.CapitalizedName}}Controller) Remove(ctx context.Context, id *pb.ID) (*pb.Optional{{.CapitalizedName}}, error) {
-	{{.Name}}, err := c.{{.Name}}Service.Remove(ctx, uint(id.Id))
+func (c *{{.CapitalizedName}}Controller) RemoveById(ctx context.Context, id *pb.ID) (*pb.Optional{{.CapitalizedName}}, error) {
+	{{.Name}}, err := c.{{.Name}}Service.RemoveById(ctx, uint(id.Id))
 	if err != nil {
 		return nil, err
 	}
 	return ToOptional{{.CapitalizedName}}Pb({{.Name}}), nil
 }
+
+func (c *{{.CapitalizedName}}Controller) Remove(ctx context.Context, options *pb.WhereOptions) (*pb.Optional{{.CapitalizedName}}, error) {
+	deleteOptions := dto.WhereOptions{
+{{range .Fields}}    {{.CapitalizedName}}: options.{{.CapitalizedName}},
+{{end}}}
+	if options.Id != nil {
+		id := uint(*options.Id)
+		deleteOptions.Id = &id
+	}
+	{{.Name}}, err := c.{{.Name}}Service.Remove(ctx, deleteOptions.ToEntity())
+	if err != nil {
+		return nil, err
+	}
+	return ToOptional{{.CapitalizedName}}Pb({{.Name}}), nil
+}
+
+
+func ToCreate{{.CapitalizedName}}InputPb(create{{.CapitalizedName}}Input *dto.Create{{.CapitalizedName}}Input) *pb.Create{{.CapitalizedName}}Input {
+	{{range .Fields}}{{if eq .Association "hasOne"}}    {{.Name}}ID := int32(*create{{$.CapitalizedName}}Input.{{.CapitalizedName}}ID)
+	{{end}}{{end}}		return &pb.Create{{.CapitalizedName}}Input{
+		{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: {{if not .Optional}}*{{end}}create{{$.CapitalizedName}}Input.{{.CapitalizedName}},
+		{{else if eq .Association "hasOne"}}        {{.CapitalizedName}}Id: {{.Name}}ID,
+		{{end}}{{end}} 
+	}
+}
+
+
+func ToUpdate{{.CapitalizedName}}ByIdInputPb(update{{.CapitalizedName}}Input *dto.Update{{.CapitalizedName}}Input) *pb.Update{{.CapitalizedName}}ByIdInput {
+	{{range .Fields}}{{if eq .Association "hasOne"}}    {{.Name}}ID := int32(*update{{$.CapitalizedName}}Input.{{.CapitalizedName}}ID)
+	{{end}}{{end}}		return &pb.Update{{.CapitalizedName}}ByIdInput{
+		Id: int32(update{{.CapitalizedName}}Input.ID),
+		{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: update{{$.CapitalizedName}}Input.{{.CapitalizedName}},
+		{{else if eq .Association "hasOne"}}        {{.CapitalizedName}}Id: &{{.Name}}ID,
+		{{end}}{{end}} 
+	}
+}
+
+func ToUpdate{{.CapitalizedName}}PayloadPb(update{{.CapitalizedName}}Input *dto.Update{{.CapitalizedName}}Input) *pb.Update{{.CapitalizedName}}Input_Payload {
+	return &pb.Update{{.CapitalizedName}}Input_Payload {
+	{{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: update{{$.CapitalizedName}}Input.{{.CapitalizedName}},
+		{{else if eq .Association "hasOne"}}        {{.CapitalizedName}}Id: &{{.Name}}ID,
+		{{end}}{{end}}
+	}
+}
+
 
 func To{{.CapitalizedName}}Pb({{.Name}} *dto.{{.CapitalizedName}}) *pb.{{.CapitalizedName}} {
 	pb{{.CapitalizedName}} := pb.{{.CapitalizedName}}{
@@ -110,4 +201,10 @@ func ToRepeated{{.CapitalizedName}}Pb({{.PluralName}} []*dto.{{.CapitalizedName}
 	return &pb.Repeated{{.CapitalizedName}}{
 		{{.CapitalizedPluralName}}: pb{{.CapitalizedPluralName}},
 	}
+}
+
+func ToWhereOptionsPb(options *dto.WhereOptions) *pb.WhereOptions {
+	return &pb.WhereOptions{
+	{{range .Fields}}    {{.CapitalizedName}}: options.{{.CapitalizedName}},
+	{{end}}}
 }

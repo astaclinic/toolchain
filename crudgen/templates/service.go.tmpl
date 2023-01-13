@@ -21,8 +21,8 @@ func New{{.CapitalizedName}}ClientService({{.Name}}Client pb.{{.CapitalizedName}
 	}
 }
 
-func (s *{{.CapitalizedName}}ClientService) Create(ctx context.Context, create{{.CapitalizedName}}Input dto.Create{{.CapitalizedName}}Input) (*dto.{{.CapitalizedName}}, error) {
-	{{.Name}} := create{{.CapitalizedName}}Input.ToPb()
+func (s *{{.CapitalizedName}}ClientService) Create(ctx context.Context, create{{.CapitalizedName}}Input *dto.Create{{.CapitalizedName}}Input) (*dto.{{.CapitalizedName}}, error) {
+	{{.Name}} := ToCreate{{.CapitalizedName}}InputPb(create{{.CapitalizedName}}Input)
 	res, err := s.{{.Name}}Client.Create(ctx, {{.Name}})
 	if err != nil {
 		return nil, err
@@ -34,8 +34,8 @@ func (s *{{.CapitalizedName}}ClientService) Create(ctx context.Context, create{{
 	return output, nil
 }
 
-func (s *{{.CapitalizedName}}ClientService) GetAll(ctx context.Context) ([]*dto.{{.CapitalizedName}}, error) {
-	res, err := s.{{.Name}}Client.GetAll(ctx, &pb.GetAllOptions{})
+func (s *{{.CapitalizedName}}ClientService) GetAll(ctx context.Context, options *dto.WhereOptions) ([]*dto.{{.CapitalizedName}}, error) {
+	res, err := s.{{.Name}}Client.GetAll(ctx, ToWhereOptionsPb(options))
 	if err != nil {
 		return nil, err
 	}
@@ -50,8 +50,8 @@ func (s *{{.CapitalizedName}}ClientService) GetAll(ctx context.Context) ([]*dto.
 	return output, nil
 }
 
-func (s *{{.CapitalizedName}}ClientService) GetOne(ctx context.Context, id uint) (*dto.{{.CapitalizedName}}, error) {
-	res, err := s.{{.Name}}Client.GetOne(ctx, &pb.ID{
+func (s *{{.CapitalizedName}}ClientService) GetOneById(ctx context.Context, id uint) (*dto.{{.CapitalizedName}}, error) {
+	res, err := s.{{.Name}}Client.GetOneById(ctx, &pb.ID{
 		Id: int32(id),
 	})
 	if err != nil {
@@ -64,9 +64,8 @@ func (s *{{.CapitalizedName}}ClientService) GetOne(ctx context.Context, id uint)
 	return output, nil
 }
 
-func (s *{{.CapitalizedName}}ClientService) Update(ctx context.Context, input *dto.Update{{.CapitalizedName}}Input) (*dto.{{.CapitalizedName}}, error) {
-	{{.Name}} := input.ToPb()
-	res, err := s.{{.Name}}Client.Update(ctx, {{.Name}})
+func (s *{{.CapitalizedName}}ClientService) GetOne(ctx context.Context, options *dto.WhereOptions) (*dto.{{.CapitalizedName}}, error) {
+	res, err := s.{{.Name}}Client.GetOne(ctx, ToWhereOptionsPb(options))
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +76,37 @@ func (s *{{.CapitalizedName}}ClientService) Update(ctx context.Context, input *d
 	return output, nil
 }
 
-func (s *{{.CapitalizedName}}ClientService) Remove(ctx context.Context, id uint) (*dto.{{.CapitalizedName}}, error) {
-	res, err := s.{{.Name}}Client.Remove(ctx, &pb.ID{
+func (s *{{.CapitalizedName}}ClientService) UpdateById(ctx context.Context, update{{.CapitalizedName}}Input *dto.Update{{.CapitalizedName}}Input) (*dto.{{.CapitalizedName}}, error) {
+	{{.Name}} := ToUpdate{{.CapitalizedName}}ByIdInputPb(update{{.CapitalizedName}}Input)
+	res, err := s.{{.Name}}Client.UpdateById(ctx, {{.Name}})
+	if err != nil {
+		return nil, err
+	}
+	output, err := dto.Optional{{.CapitalizedName}}PbToDto(res)
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
+}
+
+func (s *{{.CapitalizedName}}ClientService) Update(ctx context.Context, update{{.CapitalizedName}}Input *dto.Update{{.CapitalizedName}}Input, options *dto.WhereOptions) (*dto.{{.CapitalizedName}}, error) {
+	{{.Name}} := ToUpdate{{.CapitalizedName}}PayloadPb(update{{.CapitalizedName}}Input)
+	res, err := s.{{.Name}}Client.Update(ctx, &pb.Update{{.CapitalizedName}}Input{
+		Payload: {{.Name}},
+		Options: ToWhereOptionsPb(options),
+	})
+	if err != nil {
+		return nil, err
+	}
+	output, err := dto.Optional{{.CapitalizedName}}PbToDto(res)
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
+}
+
+func (s *{{.CapitalizedName}}ClientService) RemoveById(ctx context.Context, id uint) (*dto.{{.CapitalizedName}}, error) {
+	res, err := s.{{.Name}}Client.RemoveById(ctx, &pb.ID{
 		Id: int32(id),
 	})
 	if err != nil {
@@ -90,6 +118,19 @@ func (s *{{.CapitalizedName}}ClientService) Remove(ctx context.Context, id uint)
 	}
 	return output, nil
 }
+
+func (s *{{.CapitalizedName}}ClientService) Remove(ctx context.Context, options *dto.WhereOptions) (*dto.{{.CapitalizedName}}, error) {
+	res, err := s.{{.Name}}Client.Remove(ctx, ToWhereOptionsPb(options))
+	if err != nil {
+		return nil, err
+	}
+	output, err := dto.Optional{{.CapitalizedName}}PbToDto(res)
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
+}
+
 
 type {{.CapitalizedName}}Service struct {
 	db *gorm.DB
@@ -108,9 +149,9 @@ func (s *{{.CapitalizedName}}Service) Create(ctx context.Context, create{{.Capit
 	return dto.FromEntity({{.Name}}), nil
 }
 
-func (s *{{.CapitalizedName}}Service) GetAll(ctx context.Context) ([]*dto.{{.CapitalizedName}}, error) {
+func (s *{{.CapitalizedName}}Service) GetAll(ctx context.Context, options *entities.{{.CapitalizedName}}) ([]*dto.{{.CapitalizedName}}, error) {
 	var {{.PluralName}} []*entities.{{.CapitalizedName}}
-	res := s.db.WithContext(ctx).Find(&{{.PluralName}})
+	res := s.db.WithContext(ctx){{range .Fields}}{{if eq .Association "hasOne"}}.Preload("{{.CapitalizedName}}"){{end}}{{end}}.Where(options).Find(&{{.PluralName}})
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -121,9 +162,9 @@ func (s *{{.CapitalizedName}}Service) GetAll(ctx context.Context) ([]*dto.{{.Cap
 	return {{.PluralName}}Dto, nil
 }
 
-func (s *{{.CapitalizedName}}Service) GetOne(ctx context.Context, id uint) (*dto.{{.CapitalizedName}}, error) {
+func (s *{{.CapitalizedName}}Service) GetOneById(ctx context.Context, id uint) (*dto.{{.CapitalizedName}}, error) {
 	var {{.Name}} entities.{{.CapitalizedName}}
-	res := s.db.WithContext(ctx).First(&{{.Name}}, id)
+	res := s.db.WithContext(ctx){{range .Fields}}{{if eq .Association "hasOne"}}.Preload("{{.CapitalizedName}}"){{end}}{{end}}.First(&{{.Name}})
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -133,7 +174,20 @@ func (s *{{.CapitalizedName}}Service) GetOne(ctx context.Context, id uint) (*dto
 	return dto.FromEntity(&{{.Name}}), nil
 }
 
-func (s *{{.CapitalizedName}}Service) Update(ctx context.Context, input *dto.Update{{.CapitalizedName}}Input) (*dto.{{.CapitalizedName}}, error) {
+func (s *{{.CapitalizedName}}Service) GetOne(ctx context.Context, options *entities.{{.CapitalizedName}}) (*dto.{{.CapitalizedName}}, error) {
+	var {{.Name}} entities.{{.CapitalizedName}}
+	res := s.db.WithContext(ctx){{range .Fields}}{{if eq .Association "hasOne"}}.Preload("{{.CapitalizedName}}"){{end}}{{end}}.Where(options).First(&{{.Name}})
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, res.Error
+	}
+	return dto.FromEntity(&{{.Name}}), nil
+}
+
+
+func (s *{{.CapitalizedName}}Service) UpdateById(ctx context.Context, input *dto.Update{{.CapitalizedName}}Input) (*dto.{{.CapitalizedName}}, error) {
 	{{.Name}} := input.ToEntity()
 	updated{{.CapitalizedName}} := &entities.{{.CapitalizedName}}{Model: gorm.Model{ID: input.ID}}
 	res := s.db.WithContext(ctx).Model(&updated{{.CapitalizedName}}).Clauses(clause.Returning{}).Updates({{.Name}})
@@ -146,7 +200,20 @@ func (s *{{.CapitalizedName}}Service) Update(ctx context.Context, input *dto.Upd
 	return dto.FromEntity(updated{{.CapitalizedName}}), nil
 }
 
-func (s *{{.CapitalizedName}}Service) Remove(ctx context.Context, id uint) (*dto.{{.CapitalizedName}}, error) {
+func (s *{{.CapitalizedName}}Service) Update(ctx context.Context, input *dto.Update{{.CapitalizedName}}Input, options *entities.{{.CapitalizedName}}) (*dto.{{.CapitalizedName}}, error) {
+	{{.Name}} := input.ToEntity()
+	updated{{.CapitalizedName}} := &entities.{{.CapitalizedName}}{Model: gorm.Model{ID: input.ID}}
+	res := s.db.WithContext(ctx).Model(&updated{{.CapitalizedName}}).Where(options).Clauses(clause.Returning{}).Updates({{.Name}})
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, nil
+	}
+	return dto.FromEntity(updated{{.CapitalizedName}}), nil
+}
+
+func (s *{{.CapitalizedName}}Service) RemoveById(ctx context.Context, id uint) (*dto.{{.CapitalizedName}}, error) {
 	var {{.Name}} entities.{{.CapitalizedName}}
 	res := s.db.WithContext(ctx).Clauses(clause.Returning{}).Delete(&{{.Name}}, id)
 	if res.Error != nil {
@@ -157,3 +224,16 @@ func (s *{{.CapitalizedName}}Service) Remove(ctx context.Context, id uint) (*dto
 	}
 	return dto.FromEntity(&{{.Name}}), nil
 }
+
+func (s *{{.CapitalizedName}}Service) Remove(ctx context.Context, options *entities.{{.CapitalizedName}}) (*dto.{{.CapitalizedName}}, error) {
+	var {{.Name}} entities.{{.CapitalizedName}}
+	res := s.db.WithContext(ctx).Where(options).Clauses(clause.Returning{}).Delete(&{{.Name}})
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, nil
+	}
+	return dto.FromEntity(&{{.Name}}), nil
+}
+
