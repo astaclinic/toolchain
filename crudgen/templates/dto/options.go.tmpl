@@ -4,14 +4,19 @@ import (
 	"{{.Package}}/{{.OutDir}}/{{.LowerName}}/entities"
 )
 
-type Create{{.CapitalizedName}}Input struct {
+type WhereOptions struct {
+	ID  *uint `json:"id" validate:"required" example:"1"`
 {{range .Fields}}{{if not .Association}}    {{.CapitalizedName}} {{if not .Array}}*{{end}}{{.Type}} `json:"{{.SnakeName}}"{{if not .Optional}} validate:"required"{{end}}`
 {{else if eq .Association "hasOne"}}    {{.CapitalizedName}}ID *uint `json:"{{.SnakeName}}_id"`
 {{end}}{{end}}}
 
-func (u *Create{{.CapitalizedName}}Input) ToEntity() *entities.{{.CapitalizedName}} {
-	return &entities.{{.CapitalizedName}}{
+func (u *WhereOptions) ToEntity() *entities.{{.CapitalizedName}} {
+	output := &entities.{{.CapitalizedName}}{
 {{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: u.{{.CapitalizedName}},
 {{else if eq .Association "hasOne"}}        {{.CapitalizedName}}ID: u.{{.CapitalizedName}}ID,
 {{end}}{{end}}    }
+	if u.ID != nil {
+		output.ID = *u.ID
+	}
+	return output
 }

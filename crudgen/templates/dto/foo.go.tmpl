@@ -2,14 +2,16 @@ package dto
 
 import (
 	"time"
-	pb "{{.Package}}/{{.OutDir}}/{{.LowerName}}/grpc"
-	"{{.Package}}/{{.OutDir}}/{{.LowerName}}/entities"
+	pb "{{.PbPackageName}}"
+	{{range .Fields}}{{if eq .Association "hasOne" }}{{.LowerName}}dto "{{.Package}}/dto"{{end}}
+	{{end}}	"{{.Package}}/{{.OutDir}}/{{.LowerName}}/entities"
 )
 
 type {{.CapitalizedName}} struct {
 	ID        uint       `json:"id" example:"1"`
 {{range .Fields}}{{if not .Association}}    {{.CapitalizedName}} {{if not .Array}}*{{end}}{{.Type}} `json:"{{.SnakeName}}"{{if not .Optional}} validate:"required"{{end}}`
 {{else if eq .Association "hasOne"}}    {{.CapitalizedName}}ID *uint `json:"{{.SnakeName}}_id"`
+{{.CapitalizedName}} *{{.LowerName}}dto.{{.CapitalizedName}}
 {{end}}{{end}}    CreatedAt *time.Time `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at"`
@@ -23,6 +25,10 @@ func FromEntity({{.Name}} *entities.{{.CapitalizedName}}) *{{.CapitalizedName}} 
 {{end}}{{end}}        CreatedAt: &{{.Name}}.CreatedAt,
 		UpdatedAt: &{{.Name}}.UpdatedAt,
 	}
+	{{range .Fields}}{{if eq .Association "hasOne"}}
+	if {{$.Name}}.{{.CapitalizedName}} != nil {
+		{{$.Name}}Dto.{{.CapitalizedName}} = {{.LowerName}}dto.FromEntity({{$.Name}}.{{.CapitalizedName}})
+	}{{end}}{{end}}
 	if {{.Name}}.DeletedAt.Valid {
 		{{.Name}}Dto.DeletedAt = &{{.Name}}.DeletedAt.Time
 	}
@@ -30,8 +36,8 @@ func FromEntity({{.Name}} *entities.{{.CapitalizedName}}) *{{.CapitalizedName}} 
 }
 
 func {{.CapitalizedName}}PbToDto({{.Name}}Pb *pb.{{.CapitalizedName}}) (*{{.CapitalizedName}}, error){
-	{{range .Fields}}{{if eq .Association "hasOne"}}    {{.Name}}ID := uint({{$.Name}}Pb.{{.CapitalizedName}}Id)
-	{{end}}{{end}}	createdAt, err := time.Parse(time.RFC3339, {{.Name}}Pb.CreatedAt)
+	{{range .Fields}}{{if eq .Association "hasOne"}}    {{if not .Populate}}{{.Name}}ID := uint({{$.Name}}Pb.{{.CapitalizedName}}Id)
+	{{end}}{{end}}{{end}}	createdAt, err := time.Parse(time.RFC3339, {{.Name}}Pb.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -42,10 +48,18 @@ func {{.CapitalizedName}}PbToDto({{.Name}}Pb *pb.{{.CapitalizedName}}) (*{{.Capi
 	{{.Name}}Dto := {{.CapitalizedName}}{
 		ID:              uint({{.Name}}Pb.Id),
 {{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: {{if not .Optional}}&{{end}}{{$.Name}}Pb.{{.CapitalizedName}},
-{{else if eq .Association "hasOne"}}        {{.CapitalizedName}}ID: &{{.Name}}ID,
-{{end}}{{end}}        CreatedAt: &createdAt,
+{{else if eq .Association "hasOne"}}        {{if not .Populate}}{{.CapitalizedName}}ID: &{{.Name}}ID,
+{{end}}{{end}}{{end}}        CreatedAt: &createdAt,
 		UpdatedAt: &updatedAt,
 	}
+	{{range .Fields}}{{if eq .Association "hasOne"}}{{if .Populate}}if {{$.Name}}Pb.{{.CapitalizedName}} != nil {
+		{{.Name}}, err := {{.LowerName}}dto.{{.CapitalizedName}}PbToDto({{$.Name}}Pb.{{.CapitalizedName}})
+		if err != nil {
+			return nil, err
+		}
+		{{$.Name}}Dto.{{.CapitalizedName}}ID = &{{.Name}}.ID
+		{{$.Name}}Dto.{{.CapitalizedName}} = {{.Name}}
+	}{{end}}{{end}}{{end}}
 	if {{.Name}}Pb.DeletedAt != nil {
 		deletedAt, err := time.Parse(time.RFC3339, *{{.Name}}Pb.DeletedAt)
 		if err != nil {
