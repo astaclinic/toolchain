@@ -6,7 +6,7 @@ import (
 
 	"{{.Package}}/{{.OutDir}}/{{.LowerName}}/dto"
 	"{{.Package}}/{{.OutDir}}/{{.LowerName}}/entities"
-	pb "{{.Package}}/{{.OutDir}}/{{.LowerName}}/grpc"
+	pb "{{.PbPackageName}}"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -51,7 +51,7 @@ func (s *{{.CapitalizedName}}ClientService) GetAll(ctx context.Context, options 
 }
 
 func (s *{{.CapitalizedName}}ClientService) GetOneById(ctx context.Context, id uint) (*dto.{{.CapitalizedName}}, error) {
-	res, err := s.{{.Name}}Client.GetOneById(ctx, &pb.ID{
+	res, err := s.{{.Name}}Client.GetOneById(ctx, &pb.{{.CapitalizedName}}ID{
 		Id: int32(id),
 	})
 	if err != nil {
@@ -106,7 +106,7 @@ func (s *{{.CapitalizedName}}ClientService) Update(ctx context.Context, update{{
 }
 
 func (s *{{.CapitalizedName}}ClientService) RemoveById(ctx context.Context, id uint) (*dto.{{.CapitalizedName}}, error) {
-	res, err := s.{{.Name}}Client.RemoveById(ctx, &pb.ID{
+	res, err := s.{{.Name}}Client.RemoveById(ctx, &pb.{{.CapitalizedName}}ID{
 		Id: int32(id),
 	})
 	if err != nil {

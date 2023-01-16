@@ -5,7 +5,7 @@ import (
 )
 
 type WhereOptions struct {
-	Id  *uint `json:"id" validate:"required" example:"1"`
+	ID  *uint `json:"id" validate:"required" example:"1"`
 {{range .Fields}}{{if not .Association}}    {{.CapitalizedName}} {{if not .Array}}*{{end}}{{.Type}} `json:"{{.SnakeName}}"{{if not .Optional}} validate:"required"{{end}}`
 {{else if eq .Association "hasOne"}}    {{.CapitalizedName}}ID *uint `json:"{{.SnakeName}}_id"`
 {{end}}{{end}}}
@@ -15,8 +15,8 @@ func (u *WhereOptions) ToEntity() *entities.{{.CapitalizedName}} {
 {{range .Fields}}{{if not .Association}}        {{.CapitalizedName}}: u.{{.CapitalizedName}},
 {{else if eq .Association "hasOne"}}        {{.CapitalizedName}}ID: u.{{.CapitalizedName}}ID,
 {{end}}{{end}}    }
-	if u.Id != nil {
-		output.ID = *u.Id
+	if u.ID != nil {
+		output.ID = *u.ID
 	}
 	return output
 }

@@ -3,15 +3,17 @@ syntax = "proto3";
 package {{.LowerName}};
 option go_package = "./proto";
 
+{{range $i, $v := .Fields}}{{if eq $v.Association "hasOne"}}{{if .Populate}}import "{{.LowerName}}_service.proto";
+{{end}}{{end}}{{end}}
 service {{.CapitalizedName}}Service {
   rpc Create (Create{{.CapitalizedName}}Input) returns ({{.CapitalizedName}}) {}
-  rpc GetAll (WhereOptions) returns (Repeated{{.CapitalizedName}}) {}
-  rpc GetOneById (ID) returns (Optional{{.CapitalizedName}}) {}
-  rpc GetOne (WhereOptions) returns (Optional{{.CapitalizedName}}) {}
+  rpc GetAll ({{.CapitalizedName}}WhereOptions) returns (Repeated{{.CapitalizedName}}) {}
+  rpc GetOneById ({{.CapitalizedName}}ID) returns (Optional{{.CapitalizedName}}) {}
+  rpc GetOne ({{.CapitalizedName}}WhereOptions) returns (Optional{{.CapitalizedName}}) {}
   rpc UpdateById (Update{{.CapitalizedName}}ByIdInput) returns (Optional{{.CapitalizedName}}) {}
   rpc Update (Update{{.CapitalizedName}}Input) returns (Optional{{.CapitalizedName}}) {} 
-  rpc RemoveById (ID) returns (Optional{{.CapitalizedName}}) {}
-  rpc Remove (WhereOptions) returns (Optional{{.CapitalizedName}}) {}
+  rpc RemoveById ({{.CapitalizedName}}ID) returns (Optional{{.CapitalizedName}}) {}
+  rpc Remove ({{.CapitalizedName}}WhereOptions) returns (Optional{{.CapitalizedName}}) {}
 }
 
 message Create{{.CapitalizedName}}Input {
@@ -31,13 +33,13 @@ message Update{{.CapitalizedName}}Input {
 {{else if eq $v.Association "hasOne"}}    optional int32 {{$v.SnakeName}}_id = {{inc $i 1}};
 {{end}}{{end}}  }
   Payload payload = 1;
-  WhereOptions options = 2;
+  {{.CapitalizedName}}WhereOptions options = 2;
 }
 
 message {{.CapitalizedName}} {
   int32 id = 1;
 {{range $i, $v := .Fields}}{{if not .Association}}  {{if .Optional}}optional {{end}}{{$v.Type}} {{$v.SnakeName}} = {{inc $i 2}};
-{{else if eq $v.Association "hasOne"}}  {{if .Optional}}optional {{end}}int32 {{$v.SnakeName}}_id = {{inc $i 2}};
+{{else if eq $v.Association "hasOne"}}  {{if not .Populate}}{{if .Optional}}optional {{end}}int32 {{$v.SnakeName}}_id = {{inc $i 2}};{{else}}{{if .Optional}}optional {{end}}{{.LowerName}}.{{.CapitalizedName}} {{.Name}} = {{inc $i 2}};{{end}}
 {{end}}{{end}}  string created_at = {{len .Fields | inc 2}};
   string updated_at = {{len .Fields | inc 3}};
   optional string deleted_at = {{len .Fields | inc 4}};
@@ -51,11 +53,12 @@ message Repeated{{.CapitalizedName}} {
   repeated {{.CapitalizedName}} {{.SnakePluralName}} = 1;
 }
 
-message ID {
+message {{.CapitalizedName}}ID {
   int32 id = 1;
 }
 
-message WhereOptions {
+message {{.CapitalizedName}}WhereOptions {
   optional int32 id = 1;
-{{range $i, $v := .Fields}}  optional {{$v.Type}} {{$v.SnakeName}} = {{inc $i 2}};
+{{range $i, $v := .Fields}}{{if not $v.Association}}  optional {{$v.Type}} {{$v.SnakeName}} = {{inc $i 2}};
+{{else if eq $v.Association "hasOne"}}  optional int32 {{$v.SnakeName}}_id = {{inc $i 2}};{{end}}
 {{end}}}

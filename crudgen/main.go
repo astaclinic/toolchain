@@ -28,6 +28,7 @@ type Field struct {
 	Unique          bool   `json:"unique"`
 	Array           bool   `json:"array"`
 	Association     string `json:"association"`
+	Populate        bool   `json:"populate"`
 }
 
 type Entity struct {
@@ -42,6 +43,9 @@ type Entity struct {
 	KebabPluralName       string
 	LowerName             string
 	OutDir                string
+	PbCompileAt           string
+	PbDir                 string
+	PbPackageName         string
 	Fields                []Field
 }
 
@@ -91,6 +95,9 @@ func main() {
 	pluralName := flag.String("plural", "", "plural name of the entity")
 	packageName := flag.String("package", "", "go package name of the entity")
 	fieldsJson := flag.String("fields", "fields.json", "fields of the entity")
+	pbPackageName := flag.String("pbPackage", *packageName+"/"+*name, "grpc compiled files package name")
+	pbCompileAt := flag.String("pbCompileAt", "./grpc", "dir for compiled protobuf")
+	pbDir := flag.String("pbDir", "./grpc", "dir for reading the protobuf")
 	flag.Parse()
 	if *name == "" {
 		panic("name is required")
@@ -142,6 +149,9 @@ func main() {
 		LowerName:             strings.ToLower(*name),
 		OutDir:                *outDir,
 		Fields:                fields,
+		PbCompileAt:           *pbCompileAt,
+		PbDir:                 *pbDir,
+		PbPackageName:         *pbPackageName,
 	}
 
 	var tmplList []string
