@@ -206,7 +206,7 @@ func To{{.CapitalizedName}}Pb({{.Name}} *dto.{{.CapitalizedName}}) *pb.{{.Capita
 		UpdatedAt: {{.Name}}.UpdatedAt.Format(time.RFC3339),
 	}
 {{range .Fields}}{{if eq .Association "hasOne"}}{{if .Populate}}if {{$.Name}}.{{.CapitalizedName}} != nil {
-	pb{{$.CapitalizedName}}.{{.CapitalizedName}} = {{.Name}}.To{{.CapitalizedName}}Pb({{$.Name}}.{{.CapitalizedName}})
+	pb{{$.CapitalizedName}}.{{.CapitalizedName}} = {{.LowerName}}.To{{.CapitalizedName}}Pb({{$.Name}}.{{.CapitalizedName}})
 }{{end}}{{end}}{{end}}
 	if {{.Name}}.DeletedAt != nil {
 		deletedAt := {{.Name}}.DeletedAt.Format(time.RFC3339)
