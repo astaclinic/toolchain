@@ -164,7 +164,7 @@ func (s *{{.CapitalizedName}}Service) GetAll(ctx context.Context, options *entit
 
 func (s *{{.CapitalizedName}}Service) GetOneById(ctx context.Context, id uint) (*dto.{{.CapitalizedName}}, error) {
 	var {{.Name}} entities.{{.CapitalizedName}}
-	res := s.db.WithContext(ctx){{range .Fields}}{{if eq .Association "hasOne"}}.Preload("{{.CapitalizedName}}"){{end}}{{end}}.First(&{{.Name}})
+	res := s.db.WithContext(ctx){{range .Fields}}{{if eq .Association "hasOne"}}.Preload("{{.CapitalizedName}}"){{end}}{{end}}.First(&{{.Name}}, id)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			return nil, nil
