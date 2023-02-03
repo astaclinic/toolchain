@@ -55,7 +55,7 @@ func (c *{{.CapitalizedName}}Controller) GetAll(ctx context.Context, options *pb
 		id := uint(*options.{{.CapitalizedName}}Id)
 		getOptions.{{.CapitalizedName}}ID = &id
 	}
-{{end}}{{end}} {{.PluralName}}, err := c.{{.Name}}Service.GetAll(ctx, getOptions.ToEntity())
+{{end}}{{end}} {{.PluralName}}, err := c.{{.Name}}Service.GetAll(ctx, &getOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (c *{{.CapitalizedName}}Controller) GetOne(ctx context.Context, options *pb
 		id := uint(*options.{{.CapitalizedName}}Id)
 		getOptions.{{.CapitalizedName}}ID = &id
 	}
-{{end}}{{end}} {{.Name}}, err := c.{{.Name}}Service.GetOne(ctx, getOptions.ToEntity())
+{{end}}{{end}} {{.Name}}, err := c.{{.Name}}Service.GetOne(ctx, &getOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (c *{{.CapitalizedName}}Controller) Update(ctx context.Context, update{{.Ca
         {{.Name}}ID := uint(*payload.{{.CapitalizedName}}Id)
         update{{$.CapitalizedName}}InputDto.{{.CapitalizedName}}ID = &{{.Name}}ID
 }
-{{end}}{{end}}    {{.Name}}, err := c.{{.Name}}Service.Update(ctx, &update{{.CapitalizedName}}InputDto, updateOptions.ToEntity())
+{{end}}{{end}}    {{.Name}}, err := c.{{.Name}}Service.Update(ctx, &update{{.CapitalizedName}}InputDto, &updateOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func (c *{{.CapitalizedName}}Controller) Remove(ctx context.Context, options *pb
 		id := uint(*options.{{.CapitalizedName}}Id)
 		deleteOptions.{{.CapitalizedName}}ID = &id
 	}
-{{end}}{{end}}	{{.Name}}, err := c.{{.Name}}Service.Remove(ctx, deleteOptions.ToEntity())
+{{end}}{{end}}	{{.Name}}, err := c.{{.Name}}Service.Remove(ctx, &deleteOptions)
 	if err != nil {
 		return nil, err
 	}
