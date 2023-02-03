@@ -149,9 +149,9 @@ func (s *{{.CapitalizedName}}Service) Create(ctx context.Context, create{{.Capit
 	return dto.FromEntity({{.Name}}), nil
 }
 
-func (s *{{.CapitalizedName}}Service) GetAll(ctx context.Context, options *entities.{{.CapitalizedName}}) ([]*dto.{{.CapitalizedName}}, error) {
+func (s *{{.CapitalizedName}}Service) GetAll(ctx context.Context, options *dto.WhereOptions) ([]*dto.{{.CapitalizedName}}, error) {
 	var {{.PluralName}} []*entities.{{.CapitalizedName}}
-	res := s.db.WithContext(ctx){{range .Fields}}{{if eq .Association "hasOne"}}.Preload("{{.CapitalizedName}}"){{end}}{{end}}.Where(options).Find(&{{.PluralName}})
+	res := s.db.WithContext(ctx){{range .Fields}}{{if eq .Association "hasOne"}}.Preload("{{.CapitalizedName}}"){{end}}{{end}}.Where(options.ToEntity()).Find(&{{.PluralName}})
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -174,9 +174,9 @@ func (s *{{.CapitalizedName}}Service) GetOneById(ctx context.Context, id uint) (
 	return dto.FromEntity(&{{.Name}}), nil
 }
 
-func (s *{{.CapitalizedName}}Service) GetOne(ctx context.Context, options *entities.{{.CapitalizedName}}) (*dto.{{.CapitalizedName}}, error) {
+func (s *{{.CapitalizedName}}Service) GetOne(ctx context.Context, options *dto.WhereOptions) (*dto.{{.CapitalizedName}}, error) {
 	var {{.Name}} entities.{{.CapitalizedName}}
-	res := s.db.WithContext(ctx){{range .Fields}}{{if eq .Association "hasOne"}}.Preload("{{.CapitalizedName}}"){{end}}{{end}}.Where(options).First(&{{.Name}})
+	res := s.db.WithContext(ctx){{range .Fields}}{{if eq .Association "hasOne"}}.Preload("{{.CapitalizedName}}"){{end}}{{end}}.Where(options.ToEntity()).First(&{{.Name}})
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -200,10 +200,10 @@ func (s *{{.CapitalizedName}}Service) UpdateById(ctx context.Context, input *dto
 	return dto.FromEntity(updated{{.CapitalizedName}}), nil
 }
 
-func (s *{{.CapitalizedName}}Service) Update(ctx context.Context, input *dto.Update{{.CapitalizedName}}Input, options *entities.{{.CapitalizedName}}) (*dto.{{.CapitalizedName}}, error) {
+func (s *{{.CapitalizedName}}Service) Update(ctx context.Context, input *dto.Update{{.CapitalizedName}}Input, options *dto.WhereOptions) (*dto.{{.CapitalizedName}}, error) {
 	{{.Name}} := input.ToEntity()
 	updated{{.CapitalizedName}} := &entities.{{.CapitalizedName}}{Model: gorm.Model{ID: input.ID}}
-	res := s.db.WithContext(ctx).Model(&updated{{.CapitalizedName}}).Where(options).Clauses(clause.Returning{}).Updates({{.Name}})
+	res := s.db.WithContext(ctx).Model(&updated{{.CapitalizedName}}).Where(options.ToEntity()).Clauses(clause.Returning{}).Updates({{.Name}})
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -225,9 +225,9 @@ func (s *{{.CapitalizedName}}Service) RemoveById(ctx context.Context, id uint) (
 	return dto.FromEntity(&{{.Name}}), nil
 }
 
-func (s *{{.CapitalizedName}}Service) Remove(ctx context.Context, options *entities.{{.CapitalizedName}}) (*dto.{{.CapitalizedName}}, error) {
+func (s *{{.CapitalizedName}}Service) Remove(ctx context.Context, options *dto.WhereOptions) (*dto.{{.CapitalizedName}}, error) {
 	var {{.Name}} entities.{{.CapitalizedName}}
-	res := s.db.WithContext(ctx).Where(options).Clauses(clause.Returning{}).Delete(&{{.Name}})
+	res := s.db.WithContext(ctx).Where(options.ToEntity()).Clauses(clause.Returning{}).Delete(&{{.Name}})
 	if res.Error != nil {
 		return nil, res.Error
 	}
